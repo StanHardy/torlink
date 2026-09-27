@@ -24,6 +24,9 @@ export interface TorrentMeta {
 
 export interface AddHandlers {
   onMetadata?: (meta: TorrentMeta) => void;
+  // webtorrent has checked any pieces already on disk against their hashes and
+  // the torrent is ready to trade. On a large seed that check runs for minutes.
+  onReady?: () => void;
   onDone?: () => void;
   onError?: (message: string) => void;
 }
@@ -106,6 +109,9 @@ export class TorrentEngine {
         files: torrent.files?.length ?? 0,
         torrentFile: torrent.torrentFile,
       });
+    });
+    torrent.on("ready", () => {
+      handlers.onReady?.();
     });
     torrent.on("done", () => {
       // A finished torrent is a complete, verified torrent: keep it alive so it
